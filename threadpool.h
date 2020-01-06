@@ -1,6 +1,8 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 #include <iostream>
+#include <mutex>
+#include <condition_variable>
 #include <vector>
 #include <thread>
 #include <atomic>
@@ -23,7 +25,8 @@ namespace NLTP {
             Thread(){}
             ~Thread(){}
             void createWorkingThread(unsigned int queueLen);
-            void addTask(std::shared_ptr<Task> spTask);
+            int addTask(std::shared_ptr<Task> spTask);
+            void migrate(std::shared_ptr<Thread> spThread);
             std::shared_ptr<Task> pop_back();
             int getTaskNum();
             void release();
@@ -43,15 +46,14 @@ namespace NLTP {
             ~NonLockThreadPool(){}
             int createThreads(unsigned int minThreadNum, unsigned int maxThreadNum, unsigned int queueLen); 
             int addTask(std::shared_ptr<Task> spTask);
+            void setPolicy(unsigned char policy);
             int getThreadNum();
             void shutdown();
         private:
             void admin();
-            void migrateTask(unsigned int from, unsigned int to);
             void dispatchTaskByRoundRobin(std::shared_ptr<Task> spTask);
             void dispatchTaskByRand(std::shared_ptr<Task> spTask);
             void dispatchTaskToLeastLoad(std::shared_ptr<Task> spTask);
-            void setPolicy(unsigned char policy);
             void loadBalance();
             void increaseThread();
             void decreaseThread();
